@@ -19,14 +19,11 @@ export const DATAGRIDCOLS: GridColDef[] = [
 ];
 
 export const generateGridRowsProp = (factorData: FactorData[]): GridRowsProp => {
-    return factorData.map((data, index) => {
-        if (data.type === '' || data.subtype === '') {
-            return {
-                id: index,
-                formula_name: '(not submitted)'
-            };
-        }
+    const factorDataFiltered: FactorData[] = factorData.filter((data) => {
+        return data.type !== '' && data.subtype !== '';
+    });
 
+    return factorDataFiltered.map((data, index) => {
         // Key objective: convert the FactorData into a row entry. First, we must do some checks:
         // Determine if this is a solid or a liquid
         // Liquids contribute volume directly
@@ -38,21 +35,21 @@ export const generateGridRowsProp = (factorData: FactorData[]): GridRowsProp => 
         // This forms a partition (well, basically) since we assume things are valid from here
         const isLiquid: boolean = ((i === 1) || (i === 2));
 
-        // TODO this is temp, while the databank is incomplete
-        const isValid: boolean = (data.type === 'f1');
-
         const dbEntry: IDBEntry = db_at_home[data.subtype!];
-        let scaler: number = (isLiquid ? data.mL! : data.g!);
+        const scaler: number = (isLiquid ? data.mL! : data.g!);
+
+        let volumeScaler: number = scaler;
 
         // Patch for liquid with some solid added as directed, e.g. Similac 60/40 mixture.
+        // TODO this is actually not working, needs to be fixed
         if (isLiquid && dbEntry.displacement > 0) {
-            scaler *= (1 + dbEntry.displacement);
+            volumeScaler *= (1 + dbEntry.displacement);
         }
 
         return {
             formula_name: data.subtype,
             id: index,
-            volume: scaler,
+            volume: volumeScaler,
             kcal: (dbEntry.cal_per_unit * scaler).toFixed(3),
             protein: (dbEntry.protein_per_unit * scaler).toFixed(3),
             calcium: (dbEntry.calcium_per_unit * scaler).toFixed(3),

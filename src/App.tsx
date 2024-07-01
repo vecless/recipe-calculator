@@ -12,6 +12,7 @@ import RoundedBox from './components/RoundedBox';
 import Factor, { DEFAULT_FACTOR_DATA, FactorData } from './components/Factor';
 import { DataGrid } from '@mui/x-data-grid';
 import { DATAGRIDCOLS, generateGridRowsProp } from './generateDataGrid';
+import TopForm, { TopFormData } from './components/TopForm';
 
 /**
  * App Activity Region Props
@@ -33,6 +34,7 @@ class AppActivityRegion extends React.Component<AARProps, {
   factorForms: JSX.Element[],
   // The last valid submission from each child form, for each child form
   lastSubmission: FactorData[],
+  water: number,
 }> {
   private childFormHandler = (formKey: number) => {
     return (values: FactorData) => {
@@ -45,7 +47,7 @@ class AppActivityRegion extends React.Component<AARProps, {
   }
 
   private newEntryPanel = (index: number): JSX.Element => {
-    return <Factor key={index} customHand={this.childFormHandler(index)} />;
+    return <Factor key={index} guidingHand={this.childFormHandler(index)} />;
   }
 
   constructor(props: AARProps) {
@@ -56,6 +58,7 @@ class AppActivityRegion extends React.Component<AARProps, {
       plausibleEntries: 1,
       factorForms: [this.newEntryPanel(0)],
       lastSubmission: [DEFAULT_FACTOR_DATA],
+      water: 0, // 0 ml is a sensible default
     };
   }
 
@@ -92,20 +95,34 @@ class AppActivityRegion extends React.Component<AARProps, {
     for (let n = 0; n < this.state.plausibleEntries; ++n) {
       ret.push(
         <>
-          <Typography variant="h4"> Formula {n + 1}  </Typography>
+          <Typography variant="h5"> Formula {n + 1}  </Typography>
           <HorizontalRule />
           {this.state.factorForms[n]}
-          {(n + 1 === this.state.plausibleEntries) ? <p /> : <HorizontalRule />}
+          {(n + 1 === this.state.plausibleEntries) ? <p /> : <p />}
         </>
       );
     }
+
+    ret.push(
+      <div style={{ textAlign: 'center' }}>
+        <ButtonGroup variant="contained" color="secondary" aria-label="Basic button group">
+          <Tooltip title="Add another formula">
+            <Button onClick={() => { this.incrementFormulaCt() }}>Add</Button>
+          </Tooltip>
+
+          <Tooltip title="Remove a formula">
+            <Button onClick={() => { this.decrementFormulaCt() }}>Remove</Button>
+          </Tooltip>
+        </ButtonGroup>
+      </div>
+    );
 
     return ret;
   }
 
   private renderSidebarRegion() {
     let ret: JSX.Element[] = [];
-    ret.push(<Typography variant="h4">Summary</Typography>);
+    ret.push(<Typography variant="h5">Summary</Typography>);
     ret.push(<HorizontalRule />);
     ret.push(
       <div style={{ height: 'fit-content', overflow: "auto" }}>
@@ -113,30 +130,26 @@ class AppActivityRegion extends React.Component<AARProps, {
       </div>
     );
     ret.push(<p />);
-    ret.push(<Typography variant="h4">Written summary</Typography>);
+    ret.push(<Typography variant="h5">Written summary</Typography>);
     ret.push(<HorizontalRule />);
     ret.push(<RoundedBox> {JSON.stringify(this.state.lastSubmission)} </RoundedBox>);
     return ret;
   }
 
+  private topFormHandler = (values: TopFormData) => {
+    this.setState({ water: values.water });
+    console.log("Updated water to " + values.water);
+    this.forceUpdate();
+  }
+
   private renderTopRegion() {
     return (<div>
+      <TopForm guidingHand={this.topFormHandler} water={0} />
     </div>);
   }
 
   render() {
     return (<div>
-      <ButtonGroup variant="contained" color="secondary" aria-label="Basic button group">
-        <Tooltip title="Add another formula">
-          <Button onClick={() => { this.incrementFormulaCt() }}>Add</Button>
-        </Tooltip>
-
-        <Tooltip title="Remove a formula">
-          <Button onClick={() => { this.decrementFormulaCt() }}>Subtract</Button>
-        </Tooltip>
-      </ButtonGroup>
-      <p></p>
-
       <Box sx={{ display: 'grid', gridAutoFlow: 'dense', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1' }}>
         {/* lol this is so fragile */}
         <RoundedBox sx={{ gridColumn: 'span 3', gridRow: '1' }}> {this.renderTopRegion()} </RoundedBox>
@@ -160,7 +173,7 @@ export default function App() {
           <IconButton color="inherit" aria-label="Blender icon" disableRipple>
             <Blender />
           </IconButton>
-          <Typography variant="h3" className="title" noWrap>
+          <Typography variant="h4" className="title" noWrap>
             Renal Formula Calculator
           </Typography>
 
@@ -169,8 +182,12 @@ export default function App() {
               <IconButton color="inherit" aria-label="Simple icon button"> <UploadFileRounded /> </IconButton>
             </Tooltip>
             <Tooltip title="Report a problem">
-              <IconButton color="inherit" aria-label="Simple icon button"> <ReportProblemRounded /> </IconButton>
+              <IconButton color="inherit" aria-label="Simple icon button"
+                href="mailto:academe.ragouts_0l@icloud.com?subject=Renal%20Formula%20Calculator:%20[DESCRIBE%20THE%20ISSUE]&body=%0A%0A(Note:%20Don't%20worry%20if%20the%20recipient%20address%20looks%20weird,%20it%20is%20anonymized%20for%20privacy%20and%20automatic%20filtering)"
+                target="_blank"> <ReportProblemRounded />
+              </IconButton>
             </Tooltip>
+
             <Tooltip title="About this site">
               <IconButton color="inherit" aria-label="Simple icon button"> <InfoRounded /> </IconButton>
             </Tooltip>

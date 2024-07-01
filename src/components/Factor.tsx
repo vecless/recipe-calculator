@@ -9,6 +9,7 @@ import Grid from '@mui/material/Grid';
 
 import * as Yup from 'yup';
 import { ButtonGroup, Typography } from '@mui/material';
+import AutoSave from './AutoSave';
 
 export interface FactorData {
     type?: string;
@@ -25,7 +26,7 @@ export const DEFAULT_FACTOR_DATA = {
 }
 
 export interface FactorProps {
-    customHand: (values: FactorData) => void;
+    guidingHand: (values: FactorData) => void;
     type?: string;
     subtype?: string;
     mL?: number;
@@ -40,7 +41,7 @@ const schema = Yup.object({
     g: Yup.number().required(),
 });
 
-const Factor: React.FC<FactorProps> = ({ customHand, type = "", subtype = "", mL = 0, g = 0 }) => {
+const Factor: React.FC<FactorProps> = ({ guidingHand, type = "", subtype = "", mL = 0, g = 0 }) => {
     const validate = makeValidate(schema);
     const required = makeRequired(schema);
 
@@ -51,16 +52,37 @@ const Factor: React.FC<FactorProps> = ({ customHand, type = "", subtype = "", mL
             initialValues={{ type, subtype, mL, g }}
             onSubmit={(v) => { }}
             render={({ form, handleSubmit, submitting, pristine, values }) => {
+                if (!values) {
+                    throw new Error("Values are undefined!");
+                }
+
                 const hasType = (values.type != '');
                 let idx: number = parseInt(values.type?.[1] ?? '');
                 const isLiquid = hasType && (idx === 1) || (idx === 2);
                 const isSolid = hasType && (idx === 3 || idx === 4);
-                const isValid = hasType && (values.subtype != '') && (isLiquid ? values.mL > 0 : values.g > 0);
+                const isValid = hasType && (values.subtype != '') && (isLiquid ? values.mL >= 0 : values.g >= 0);
+
+                const handleSave = async (values: FactorData): Promise<void> => {
+                    guidingHand(values);
+
+                    if (hasType && isValid) {
+                        form.reset(values);
+                    }
+
+                    return Promise.resolve();
+                };
+
+                const saveIf = (values: FactorData): boolean => {
+                    return hasType; // TODO: add better logic
+                };
 
                 return (<div>
+                    {/* autosave on a 250ms debounce when `saveIf` */}
+                    <AutoSave onSave={handleSave} saveCv={saveIf} debouncePeriod={250} />
+
                     <form onSubmit={handleSubmit}>
                         {/* TODO different formatting of warning text -- hint? color change? */}
-                        {!pristine ? <Typography variant="body1">This formula has unsaved changes! <p /> </Typography> : <></>}
+                        {!pristine ? <Typography variant="body2">Please select a type and subtype.<p /> </Typography> : <></>}
 
                         <Stack spacing={2}>
                             <Select
@@ -96,27 +118,6 @@ const Factor: React.FC<FactorProps> = ({ customHand, type = "", subtype = "", mL
                             />
                         </Stack>
                     </form>
-
-                    <Grid item style={{ marginTop: 16 }}>
-                        <ButtonGroup variant="contained" color="primary" aria-label="Basic button group">
-                            <Button
-                                type="submit"
-                                onClick={() => {
-                                    form.reset(values);
-                                    customHand(values);
-                                }}
-                                disabled={!isValid}>
-                                Save
-                            </Button>
-
-                            <Button
-                                onClick={form.reset}
-                                disabled={submitting || pristine}>
-                                Reset
-                            </Button>
-                        </ButtonGroup>
-                    </Grid>
-
                 </div>
                 );
             }}
