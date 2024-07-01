@@ -1,10 +1,10 @@
 {
   "files": {
-    "main.js": "/recipe-calculator/static/js/main.ba29339a.js",
+    "main.js": "/recipe-calculator/static/js/main.c6a2800c.js",
     "index.html": "/recipe-calculator/index.html",
-    "main.ba29339a.js.map": "/recipe-calculator/static/js/main.ba29339a.js.map"
+    "main.c6a2800c.js.map": "/recipe-calculator/static/js/main.c6a2800c.js.map"
   },
   "entrypoints": [
-    "static/js/main.ba29339a.js"
+    "static/js/main.c6a2800c.js"
   ]
 }
