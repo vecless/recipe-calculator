@@ -3,9 +3,7 @@ import { Form } from 'react-final-form';
 
 import * as LocalData from '../utils';
 import { Select, TextField, makeRequired, makeValidate } from 'mui-rff';
-import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
-import Grid from '@mui/material/Grid';
 
 import * as Yup from 'yup';
 import { ButtonGroup, Typography } from '@mui/material';
@@ -73,7 +71,7 @@ const Factor: React.FC<FactorProps> = ({ guidingHand, type = "", subtype = "", m
                 };
 
                 const saveIf = (values: FactorData): boolean => {
-                    return hasType; // TODO: add better logic
+                    return isValid;
                 };
 
                 return (<div>
