@@ -41,7 +41,6 @@ export const generateGridRowsProp = (factorData: FactorData[]): GridRowsProp => 
         let volumeScaler: number = scaler;
 
         // Patch for liquid with some solid added as directed, e.g. Similac 60/40 mixture.
-        // TODO this is actually not working, needs to be fixed
         if (isLiquid && dbEntry.displacement > 0) {
             volumeScaler *= (1 + dbEntry.displacement);
         }
